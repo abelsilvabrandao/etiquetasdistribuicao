@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Etiquetas de Distribuição</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <link href="https://fonts.cdnfonts.com/css/mobil" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .container > h1,
+      .btn-container,
+      input[type="file"] {
+        display: none;
+      }
+      #etiquetas,
+      #etiquetas * {
+        visibility: visible;
+      }
+      .etiqueta {
+        page-break-after: always;
+        margin: 0;
+        padding: 0;
+        border: none;
+      }
+      @page {
+        size: 4in 6in;
+        margin: 0;
+      }
+    }
+    :root {
+      --primary-color: #10B981;
+      --secondary-color: #059669;
+      --bg-start: #F0FDF4;
+      --bg-end: #D1FAE5;
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .header-logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .main-logo {
+      width: 200px;
+      height: auto;
+      object-fit: contain;
+    }
+    h1 {
+      text-align: center;
+      color: #007a4d;
+    }
+    input[type="file"] {
+      display: block;
+      margin: 20px auto;
+      padding: 0.75rem;
+      border: 2px dashed #ccc;
+      border-radius: 0.5rem;
+      background: #fff;
+      cursor: pointer;
+      width: 100%;
+      max-width: 400px;
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 1rem;
+      border: none;
+    }
+    button:disabled {
+      opacity: 0.5;
+    }
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      transition: background 0.3s ease;
+    }
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+    .btn-secondary {
+      background: white;
+      color: #007a4d;
+      border: 1px solid #007a4d;
+    }
+    .btn-secondary:hover {
+      background-color: #eef2f6;
+    }
+    .etiqueta {
+      width: 540px;
+      height: 400px;
+      background: #fff;
+      border: 2px solid #000;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 20px 0;
+      page-break-inside: avoid;
+    }
+    .topo {
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+    .topo h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+    }
+    .barcode {
+      display: flex;
+      justify-content: flex-end;
+      margin: 8px 0;
+    }
+
+    .right-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .produto-info {
+      text-align: right;
+      font-weight: 700;
+      margin: 2px 0 8px 0;
+      font-size: 1.4rem;
+      font-family: 'Mobil', sans-serif;
+    }
+    .cidade-info {
+      font-size: 1.4rem;
+      font-family: 'Arial Black', Arial, sans-serif;
+    }
+    .dados-grid {
+      display: grid;
+      grid-template-columns: 1fr 3fr;
+      gap: 4px 2px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+      font-family: Arial, sans-serif;
+    }
+
+    .dados-grid .produto-valor {
+      font-family: 'Mobil', sans-serif;
+    }
+    .rodape {
+      text-align: center;
+      font-style: italic;
+      font-size: 0.7rem;
+      margin-top: 10px;
+      font-family: Arial, sans-serif;
+    }
+  
+    /* Ajustando fonte e espaçamento dos dados NF e VOL */
+.nf-vol {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding: 0 20px;
+}
+
+.nf-vol .label {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.nf-vol .value {
+  font-size: 2.1rem;
+  font-family: 'Arial Black', Arial, sans-serif;
+  letter-spacing: 1px;
+}
+
+.emitente-logo {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 15px;
+  width: 100%;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  padding-left: 5px;
+}
+
+.logo {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  max-width: 100%;
+  display: block;
+}
+
+    .etiquetas-wrapper {
+      margin: 20px auto;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .etiquetas-counter {
+      background: #007a4d;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    #visualizadorTitulo {
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      box-shadow: 0 4px 6px var(--shadow-color);
+    }
+
+    #visualizadorTitulo i {
+      font-size: 1.2rem;
+      opacity: 1;
+      letter-spacing: 0.5px;
+    }
+
+    .counter-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .counter-item i {
+      font-style: normal;
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .etiquetas-container {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Estilização da barra de rolagem */
+    .etiquetas-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .etiquetas-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    .etiquetas-container::-webkit-scrollbar-thumb {
+      background: #007a4d;
+      border-radius: 4px;
+    }
+
+    .etiquetas-container::-webkit-scrollbar-thumb:hover {
+      background: #005f3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-logo">
+      <img src="logo.png" alt="Logo" class="main-logo">
+    </div>
+    <h1>Gerador de Etiquetas de Distribuição</h1>
+    <input type="file" id="xmlInput" multiple accept=".xml" />
+    <div class="btn-container">
+      <button class="btn-primary" id="btnVisualizar" disabled><i class="fas fa-eye"></i> Visualizar</button>
+      <button class="btn-primary" id="btnImprimir" disabled><i class="fas fa-print"></i> Imprimir</button>
+      <button class="btn-secondary" id="btnLimpar" disabled><i class="fas fa-trash"></i> Limpar</button>
+    </div>
+    <div class="etiquetas-wrapper">
+      <div class="etiquetas-counter" id="etiquetasCounter" style="display: none;">
+        <div class="counter-item">
+          <i>NFs:</i> <span id="totalNFs">0</span>
+        </div>
+        <div class="counter-item">
+          <i>Etiquetas:</i> <span id="currentPage">0</span> de <span id="totalPages">0</span>
+          <span id="etiquetaAtual" style="display: none;">0</span>
+        </div>
+      </div>
+      <div class="etiquetas-counter" id="visualizadorTitulo">
+        <div class="counter-item">
+          <i>✨ Visualizador de Etiquetas</i>
+        </div>
+      </div>
+      <div id="etiquetas" class="etiquetas-container"></div>
+    </div>
+  </div>
+  <script>
+    // Referências aos botões
+    const btnVisualizar = document.getElementById('btnVisualizar');
+    const btnImprimir = document.getElementById('btnImprimir');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const xmlInput = document.getElementById('xmlInput');
+
+    // Evento de seleção de arquivos
+    xmlInput.addEventListener('change', (event) => {
+      window.storedFiles = event.target.files;
+      // Ativa apenas o botão Visualizar se houver arquivos selecionados
+      btnVisualizar.disabled = event.target.files.length === 0;
+    });
+
+    // Evento do botão Visualizar
+    btnVisualizar.addEventListener('click', async () => {
+      if (window.storedFiles) {
+        document.getElementById('visualizadorTitulo').style.display = 'none';
+        document.getElementById('etiquetasCounter').style.display = 'flex';
+        await renderEtiquetas(window.storedFiles);
+        // Ativa os botões Imprimir e Limpar após visualizar
+        btnImprimir.disabled = false;
+        btnLimpar.disabled = false;
+      }
+    });
+
+    // Evento do botão Limpar
+    btnLimpar.addEventListener('click', () => {
+      document.getElementById('etiquetas').innerHTML = '';
+      // Desativa todos os botões
+      btnImprimir.disabled = true;
+      btnLimpar.disabled = true;
+      btnVisualizar.disabled = true;
+
+      // Limpa os arquivos armazenados
+      window.storedFiles = [];
+      // Limpa o input de arquivo
+      document.getElementById('xmlInput').value = '';
+
+      // Limpa o contador de etiquetas
+      document.getElementById('currentPage').textContent = '0';
+      document.getElementById('totalPages').textContent = '0';
+      window.storedFiles = null;
+      // Desconecta o observador quando limpar
+      const observer = new IntersectionObserver(() => {});
+      observer.disconnect();
+    });
+
+    // Evento do botão Imprimir
+    btnImprimir.addEventListener('click', () => {
+      if (!document.getElementById('etiquetas').hasChildNodes()) {
+        alert('Por favor, visualize as etiquetas antes de imprimir.');
+        return;
+      }
+      window.print();
+    });
+
+    function handleFiles(event) {
+      window.storedFiles = event.target.files;
+    }
+
+    async function renderEtiquetas(files) {
+      let totalEtiquetas = 0;
+      let etiquetaAtual = 0;
+      const totalNFs = files.length;
+      document.getElementById('totalNFs').textContent = totalNFs;
+      const container = document.getElementById('etiquetas');
+      container.innerHTML = '';
+      
+      // Configurar o observador de rolagem
+      const etiquetasContainer = document.querySelector('.etiquetas-container');
+      const observerOptions = {
+        root: etiquetasContainer,
+        threshold: 0.5 // elemento precisa estar 50% visível
+      };
+
+      const updateCurrentEtiqueta = (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const etiqueta = entry.target;
+            const index = Array.from(etiqueta.parentNode.children).indexOf(etiqueta) + 1;
+            document.getElementById('currentPage').textContent = index;
+          }
+        });
+      };
+
+      const observer = new IntersectionObserver(updateCurrentEtiqueta, observerOptions);
+
+      // Função para ler arquivo e retornar quantidade de volumes
+      const getFileVolumes = async (file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const xml = new DOMParser().parseFromString(e.target.result, 'text/xml');
+            const itens = Array.from(xml.getElementsByTagName('det'));
+            const volTag = xml.getElementsByTagName('vol')[0];
+            const volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
+            resolve(volumesTotais);
+          };
+          reader.readAsText(file);
+        });
+      };
+
+      // Calcula o total de volumes de todos os arquivos
+      for (const file of files) {
+        const volumes = await getFileVolumes(file);
+        totalEtiquetas += volumes;
+      }
+      
+      // Atualiza o total no display
+      document.getElementById('totalPages').textContent = totalEtiquetas;
+      container.innerHTML = '';
+
+      Array.from(files).forEach((file, fileIndex) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(e.target.result, 'text/xml');
+      
+
+      const get = tag => {
+        const el = xml.getElementsByTagName(tag)[0];
+        return el ? el.textContent : '';
+      };
+
+      const emitente = get('xNome');
+      const nf = get('nNF');
+      const cnpjEmitente = get('CNPJ');
+      const logoUrl = `${cnpjEmitente}.png`;
+
+      const dest = xml.getElementsByTagName('dest')[0];
+      const endDest = dest?.getElementsByTagName('enderDest')[0];
+      const destNome = dest?.getElementsByTagName('xNome')[0]?.textContent || '';
+      const endereco = `${endDest?.getElementsByTagName('xLgr')[0]?.textContent || ''}, ${endDest?.getElementsByTagName('nro')[0]?.textContent || ''}`;
+      const bairro = endDest?.getElementsByTagName('xBairro')[0]?.textContent || '';
+      const cidadeUF = `${endDest?.getElementsByTagName('xMun')[0]?.textContent || ''} - ${endDest?.getElementsByTagName('UF')[0]?.textContent || ''}`;
+
+      const itens = Array.from(xml.getElementsByTagName('det'));
+
+      // Volumes por item
+      const volTag = xml.getElementsByTagName('vol')[0];
+      let volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
+      let volumesDistribuidos = [];
+      
+      // Aqui assumimos uma distribuição manual embutida nos produtos, se existir:
+      // EX: cada item com uma tag <infAdProd>Volume: 2
+      let totalDistribuido = 0;
+      itens.forEach((itemEl, idx) => {
+        let qtdVol = 1;
+        const infAdProd = itemEl.getElementsByTagName('infAdProd')[0];
+        if (infAdProd && infAdProd.textContent.toLowerCase().includes('volume:')) {
+          const match = infAdProd.textContent.match(/volume:\s*(\d+)/i);
+          if (match) qtdVol = parseInt(match[1]);
+        }
+        totalDistribuido += qtdVol;
+        volumesDistribuidos.push(qtdVol);
+      });
+
+      // Se a soma dos volumes individuais não bater com o total geral, ajusta proporcionalmente
+      if (totalDistribuido !== volumesTotais) {
+        volumesDistribuidos = itens.map((_, idx) =>
+          Math.round((volumesTotais / itens.length) * (idx + 1)) - Math.round((volumesTotais / itens.length) * idx)
+        );
+      }
+
+      // Calcula o volume total de todas as etiquetas
+      const totalVolumes = volumesDistribuidos.reduce((sum, vol) => sum + vol, 0);
+      let volumeAtual = 0;
+
+      // Geração de etiquetas por item
+      itens.forEach((itemEl, itemIndex) => {
+        const cProd = itemEl.getElementsByTagName('cProd')[0]?.textContent || '';
+        const xProd = itemEl.getElementsByTagName('xProd')[0]?.textContent || '';
+        const xPed = itemEl.getElementsByTagName('xPed')[0]?.textContent || '---';
+        const volItem = volumesDistribuidos[itemIndex] || 1;
+
+        for (let i = 1; i <= volItem; i++) {
+          const barcodeId = `barcode-${fileIndex}-${itemIndex}-${i}`;
+          const etiqueta = document.createElement('div');
+          etiqueta.className = 'etiqueta';
+          etiqueta.innerHTML = `
+            <div class="topo">
+              <div class="emitente-logo">
+                <div class="logo-container">
+                  <img src="${logoUrl}" alt="Logo ${emitente}" class="logo">
+                </div>
+                <div class="right-content">
+                  <h2>${emitente}</h2>
+                  <div class="barcode">
+                    <svg id="${barcodeId}"></svg>
+                  </div>
+                  <!-- 
+                    Texto informativo abaixo do código de barras
+                    Formato anterior: "34055217-000500000 - 1 de 4 Pedido: 50269690"
+                    Novo formato: "34055217-000500000 - 1 de 4"
+                    Removido o número do pedido para manter consistência com o código de barras
+                  -->
+                  <p class="produto-info">${cProd} - ${i} de ${volItem}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="dados-grid">
+              <div><strong>DESTINAT.</strong></div><div>${destNome}</div>
+              <div><strong>ENDEREÇO</strong></div><div>${endereco}</div>
+              <div><strong>BAIRRO</strong></div><div>${bairro}</div>
+              <div><strong>CIDADE</strong></div><div class="cidade-info">${cidadeUF}</div>
+              <div><strong>PRODUTO</strong></div><div class="produto-valor">${cProd} - ${xProd}</div>
+            </div>
+            <div class="nf-vol">
+              <div><span class="label">NF </span><span class="value">${nf}</span></div>
+              <div><span class="label">VOL </span><span class="value">${++volumeAtual} / ${totalVolumes}</span></div>
+            </div>
+            <div class="rodape">
+              INTERMARÍTIMA PORTOS E LOGÍSTICA S.A.
+            </div>
+          `;
+          container.appendChild(etiqueta);
+          etiquetaAtual++;
+          document.getElementById('totalPages').textContent = totalEtiquetas;
+          // Observa cada etiqueta para atualizar o contador
+          observer.observe(etiqueta);
+
+          // Código de barras: usa apenas o código do produto (cProd)
+          // Formato anterior concatenava cProd+xPed, mas foi simplificado para melhor leitura
+          // Exemplo: cProd="34055217-000500000" xPed="50269690"
+          // Antes: "34055217-00050000050269690"
+          // Agora: "34055217-000500000"
+          JsBarcode(`#${barcodeId}`, `${cProd}`, {
+            format: "CODE128",
+            width: 1.5,
+            height: 40,
+            displayValue: false
+          });
+        }
+      });
+    };
+    reader.readAsText(file);
+  });
+}
+  </script>
+</body>
+</html>
