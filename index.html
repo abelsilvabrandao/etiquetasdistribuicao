@@ -8,30 +8,6 @@
   <link href="https://fonts.cdnfonts.com/css/mobil" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      .container > h1,
-      .btn-container,
-      input[type="file"] {
-        display: none;
-      }
-      #etiquetas,
-      #etiquetas * {
-        visibility: visible;
-      }
-      .etiqueta {
-        page-break-after: always;
-        margin: 0;
-        padding: 0;
-        border: none;
-      }
-      @page {
-        size: 4in 6in;
-        margin: 0;
-      }
-    }
     :root {
       --primary-color: #10B981;
       --secondary-color: #059669;
@@ -181,47 +157,47 @@
     }
   
     /* Ajustando fonte e espaçamento dos dados NF e VOL */
-.nf-vol {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  padding: 0 20px;
-}
+    .nf-vol {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding: 0 20px;
+    }
 
-.nf-vol .label {
-  font-size: 0.9rem;
-  color: #444;
-}
+    .nf-vol .label {
+      font-size: 0.9rem;
+      color: #444;
+    }
 
-.nf-vol .value {
-  font-size: 2.1rem;
-  font-family: 'Arial Black', Arial, sans-serif;
-  letter-spacing: 1px;
-}
+    .nf-vol .value {
+      font-size: 2.1rem;
+      font-family: 'Arial Black', Arial, sans-serif;
+      letter-spacing: 1px;
+    }
 
-.emitente-logo {
-  display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 15px;
-  width: 100%;
-}
+    .emitente-logo {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 15px;
+      width: 100%;
+    }
 
-.logo-container {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  height: 100%;
-  padding-left: 5px;
-}
+    .logo-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      height: 100%;
+      padding-left: 5px;
+    }
 
-.logo {
-  width: 120px;
-  height: auto;
-  object-fit: contain;
-  max-width: 100%;
-  display: block;
-}
+    .logo {
+      width: 120px;
+      height: auto;
+      object-fit: contain;
+      max-width: 100%;
+      display: block;
+    }
 
     .etiquetas-wrapper {
       margin: 20px auto;
@@ -312,10 +288,188 @@
     .etiquetas-container::-webkit-scrollbar-thumb:hover {
       background: #005f3c;
     }
+
+    @media print {
+      @page {
+        size: 100mm 70mm;
+        margin: 0;
+        padding: 0;
+      }
+
+      * {
+        box-sizing: border-box !important;
+      }
+
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100mm !important;
+        height: 70mm !important;
+        background: white !important;
+      }
+
+      /* Esconde tudo primeiro */
+      body > * {
+        display: none !important;
+      }
+
+      /* Mostra apenas o container de etiquetas */
+      #etiquetas {
+        display: block !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100mm !important;
+        height: 70mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        overflow: visible !important;
+      }
+
+      .etiqueta {
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100mm !important;
+        height: 70mm !important;
+        margin: 0 !important;
+        padding: 5mm !important;
+        border: 0.3mm solid black !important;
+        background: white !important;
+        overflow: visible !important;
+      }
+
+      /* Garante que todos os elementos dentro da etiqueta sejam visíveis */
+      .etiqueta * {
+        display: block !important;
+        visibility: visible !important;
+      }
+
+      .emitente-logo {
+        display: grid !important;
+        grid-template-columns: 30mm 1fr !important;
+        gap: 3mm !important;
+      }
+
+      .logo-container {
+        width: 25mm !important;
+      }
+
+      .dados-grid {
+        margin: 3mm 0 !important;
+        display: grid !important;
+        grid-template-columns: auto 1fr !important;
+        gap: 2mm !important;
+      }
+
+      .nf-vol {
+        display: flex !important;
+        justify-content: space-between !important;
+        position: absolute !important;
+        bottom: 5mm !important;
+        left: 5mm !important;
+        right: 5mm !important;
+      }
+
+      /* Ajustes de fonte */
+      .nf-vol .value {
+        font-size: 16pt !important;
+      }
+
+      .cidade-info {
+        font-size: 12pt !important;
+        font-weight: bold !important;
+      }
+    }
+    .main-container {
+  display: flex;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.side-panel {
+  width: 380px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  max-height: calc(100vh - 40px);
+  position: sticky;
+  top: 20px;
+  overflow-y: auto;
+}
+
+.side-panel h2 {
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nf-card {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.nf-card h3 {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nf-card p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nf-card p strong {
+  color: #666;
+}
+
+.nf-card .etiquetas-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.panel-summary {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.panel-summary p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  font-weight: bold;
+  color: var(--primary-color);
+}
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="main-container">
+  <!-- Aqui vai o conteúdo atual da .container (todo o conteúdo principal) -->
+<div class="container">
     <div class="header-logo">
       <img src="logo.png" alt="Logo" class="main-logo">
     </div>
@@ -344,6 +498,16 @@
       <div id="etiquetas" class="etiquetas-container"></div>
     </div>
   </div>
+  <!-- Aqui você insere o painel lateral -->
+  <div class="side-panel">
+    <h2><i class="fas fa-clipboard-check"></i> Painel de Conferência</h2>
+    <div id="nfList"></div>
+    <div class="panel-summary">
+      <p>Total de Notas: <span id="totalNFsPanel">0</span></p>
+      <p>Total de Etiquetas: <span id="totalEtiquetasPanel">0</span></p>
+    </div>
+  </div>
+</div>
   <script>
     // Referências aos botões
     const btnVisualizar = document.getElementById('btnVisualizar');
@@ -384,8 +548,15 @@
       document.getElementById('xmlInput').value = '';
 
       // Limpa o contador de etiquetas
+      document.getElementById('totalNFs').textContent = '0';
       document.getElementById('currentPage').textContent = '0';
       document.getElementById('totalPages').textContent = '0';
+
+      // Limpa o painel lateral (Painel de Conferência)
+      document.getElementById('nfList').innerHTML = '';
+      document.getElementById('totalNFsPanel').textContent = '0';
+      document.getElementById('totalEtiquetasPanel').textContent = '0';
+      // Limpa o título do visualizador
       window.storedFiles = null;
       // Desconecta o observador quando limpar
       const observer = new IntersectionObserver(() => {});
@@ -405,64 +576,65 @@
       window.storedFiles = event.target.files;
     }
 
-    async function renderEtiquetas(files) {
-      let totalEtiquetas = 0;
-      let etiquetaAtual = 0;
-      const totalNFs = files.length;
-      document.getElementById('totalNFs').textContent = totalNFs;
-      const container = document.getElementById('etiquetas');
-      container.innerHTML = '';
-      
-      // Configurar o observador de rolagem
-      const etiquetasContainer = document.querySelector('.etiquetas-container');
-      const observerOptions = {
-        root: etiquetasContainer,
-        threshold: 0.5 // elemento precisa estar 50% visível
-      };
+ async function renderEtiquetas(files) {
+  let totalEtiquetas = 0;
+  let etiquetaAtual = 0;
+  const totalNFs = files.length;
+  document.getElementById('totalNFs').textContent = totalNFs;
+  const container = document.getElementById('etiquetas');
+  container.innerHTML = '';
 
-      const updateCurrentEtiqueta = (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const etiqueta = entry.target;
-            const index = Array.from(etiqueta.parentNode.children).indexOf(etiqueta) + 1;
-            document.getElementById('currentPage').textContent = index;
-          }
-        });
-      };
+  // NOVO: limpa o painel lateral
+  document.getElementById('nfList').innerHTML = '';
+  document.getElementById('totalNFsPanel').textContent = '0';
+  document.getElementById('totalEtiquetasPanel').textContent = '0';
 
-      const observer = new IntersectionObserver(updateCurrentEtiqueta, observerOptions);
+  // Configurar o observador de rolagem
+  const etiquetasContainer = document.querySelector('.etiquetas-container');
+  const observerOptions = {
+    root: etiquetasContainer,
+    threshold: 0.5
+  };
 
-      // Função para ler arquivo e retornar quantidade de volumes
-      const getFileVolumes = async (file) => {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = e => {
-            const xml = new DOMParser().parseFromString(e.target.result, 'text/xml');
-            const itens = Array.from(xml.getElementsByTagName('det'));
-            const volTag = xml.getElementsByTagName('vol')[0];
-            const volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
-            resolve(volumesTotais);
-          };
-          reader.readAsText(file);
-        });
-      };
-
-      // Calcula o total de volumes de todos os arquivos
-      for (const file of files) {
-        const volumes = await getFileVolumes(file);
-        totalEtiquetas += volumes;
+  const updateCurrentEtiqueta = (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const etiqueta = entry.target;
+        const index = Array.from(etiqueta.parentNode.children).indexOf(etiqueta) + 1;
+        document.getElementById('currentPage').textContent = index;
       }
-      
-      // Atualiza o total no display
-      document.getElementById('totalPages').textContent = totalEtiquetas;
-      container.innerHTML = '';
+    });
+  };
 
-      Array.from(files).forEach((file, fileIndex) => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(e.target.result, 'text/xml');
-      
+  const observer = new IntersectionObserver(updateCurrentEtiqueta, observerOptions);
+
+  // Função auxiliar para contar volumes
+  const getFileVolumes = async (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const xml = new DOMParser().parseFromString(e.target.result, 'text/xml');
+        const volTag = xml.getElementsByTagName('vol')[0];
+        const volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
+        resolve(volumesTotais);
+      };
+      reader.readAsText(file);
+    });
+  };
+
+  for (const file of files) {
+    const volumes = await getFileVolumes(file);
+    totalEtiquetas += volumes;
+  }
+
+  document.getElementById('totalPages').textContent = totalEtiquetas;
+  container.innerHTML = '';
+
+  Array.from(files).forEach((file, fileIndex) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(e.target.result, 'text/xml');
 
       const get = tag => {
         const el = xml.getElementsByTagName(tag)[0];
@@ -482,16 +654,24 @@
       const cidadeUF = `${endDest?.getElementsByTagName('xMun')[0]?.textContent || ''} - ${endDest?.getElementsByTagName('UF')[0]?.textContent || ''}`;
 
       const itens = Array.from(xml.getElementsByTagName('det'));
-
-      // Volumes por item
       const volTag = xml.getElementsByTagName('vol')[0];
       let volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
+
+      // NOVO: adicionar cartão ao painel lateral
+      const nfCard = document.createElement('div');
+      nfCard.className = 'nf-card';
+      nfCard.innerHTML = `
+        <h3>NF: ${nf} <span class="etiquetas-count">${volumesTotais} etiquetas</span></h3>
+        <p><strong>Destinatário:</strong> ${destNome}</p>
+      `;
+      document.getElementById('nfList').appendChild(nfCard);
+      document.getElementById('totalNFsPanel').textContent =
+        parseInt(document.getElementById('totalNFsPanel').textContent) + 1;
+
+      // Distribuição de volumes
       let volumesDistribuidos = [];
-      
-      // Aqui assumimos uma distribuição manual embutida nos produtos, se existir:
-      // EX: cada item com uma tag <infAdProd>Volume: 2
       let totalDistribuido = 0;
-      itens.forEach((itemEl, idx) => {
+      itens.forEach((itemEl) => {
         let qtdVol = 1;
         const infAdProd = itemEl.getElementsByTagName('infAdProd')[0];
         if (infAdProd && infAdProd.textContent.toLowerCase().includes('volume:')) {
@@ -502,18 +682,15 @@
         volumesDistribuidos.push(qtdVol);
       });
 
-      // Se a soma dos volumes individuais não bater com o total geral, ajusta proporcionalmente
       if (totalDistribuido !== volumesTotais) {
         volumesDistribuidos = itens.map((_, idx) =>
           Math.round((volumesTotais / itens.length) * (idx + 1)) - Math.round((volumesTotais / itens.length) * idx)
         );
       }
 
-      // Calcula o volume total de todas as etiquetas
       const totalVolumes = volumesDistribuidos.reduce((sum, vol) => sum + vol, 0);
       let volumeAtual = 0;
 
-      // Geração de etiquetas por item
       itens.forEach((itemEl, itemIndex) => {
         const cProd = itemEl.getElementsByTagName('cProd')[0]?.textContent || '';
         const xProd = itemEl.getElementsByTagName('xProd')[0]?.textContent || '';
@@ -535,12 +712,6 @@
                   <div class="barcode">
                     <svg id="${barcodeId}"></svg>
                   </div>
-                  <!-- 
-                    Texto informativo abaixo do código de barras
-                    Formato anterior: "34055217-000500000 - 1 de 4 Pedido: 50269690"
-                    Novo formato: "34055217-000500000 - 1 de 4"
-                    Removido o número do pedido para manter consistência com o código de barras
-                  -->
                   <p class="produto-info">${cProd} - ${i} de ${volItem}</p>
                 </div>
               </div>
@@ -563,15 +734,9 @@
           `;
           container.appendChild(etiqueta);
           etiquetaAtual++;
-          document.getElementById('totalPages').textContent = totalEtiquetas;
-          // Observa cada etiqueta para atualizar o contador
+
           observer.observe(etiqueta);
 
-          // Código de barras: usa apenas o código do produto (cProd)
-          // Formato anterior concatenava cProd+xPed, mas foi simplificado para melhor leitura
-          // Exemplo: cProd="34055217-000500000" xPed="50269690"
-          // Antes: "34055217-00050000050269690"
-          // Agora: "34055217-000500000"
           JsBarcode(`#${barcodeId}`, `${cProd}`, {
             format: "CODE128",
             width: 1.5,
@@ -580,10 +745,16 @@
           });
         }
       });
+
+      // NOVO: atualizar painel ao final da leitura de cada NF
+      document.getElementById('totalEtiquetasPanel').textContent = 
+        parseInt(document.getElementById('totalEtiquetasPanel').textContent) + totalVolumes;
     };
     reader.readAsText(file);
   });
 }
+
   </script>
+  <button onclick="console.log(document.querySelector('.etiqueta').getBoundingClientRect())">Ver Dimensões</button>
 </body>
 </html>
