@@ -1,0 +1,105 @@
+/* CSS de visualização da etiqueta (tela) */
+.etiqueta {
+  width: 10cm;
+  height: 7cm;
+  box-sizing: border-box;
+  margin: 0;
+  background: white;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.92rem;
+  border: 1px solid #222;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.topo {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.emitente-logo {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+.logo-container {
+  width: 28mm;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 95px;
+  padding-left: 0;
+  margin-left: 0;
+  gap: 0;
+}
+.logo {
+  width: 100%;
+  height: auto;
+  max-width: 28mm;
+  max-height: 18mm;
+  object-fit: contain;
+  margin-left: 0;
+  padding-left: 0;
+  display: block;
+}
+.right-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+}
+.right-content h2 {
+  font-size: 1.05rem;
+  margin: 0 0 2px 0;
+  font-weight: bold;
+  line-height: 1.1;
+}
+.barcode {
+  margin: 0 0 2px 0;
+}
+.produto-info {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: left;
+}
+.dados-grid {
+  display: grid;
+  grid-template-columns: 1fr 2.2fr;
+  gap: 2px 8px;
+  margin: 2px 0 6px 0;
+  font-size: 0.92rem;
+  line-height: 1.15;
+}
+.cidade-info {
+  font-size: 0.98rem;
+  font-weight: bold;
+}
+.nf-vol {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  margin: 0 0 2px 0;
+}
+.nf-vol .label {
+  font-size: 0.85rem;
+  color: #444;
+}
+.nf-vol .value {
+  font-size: 1.15rem;
+  font-family: 'Arial Black', Arial, sans-serif;
+  letter-spacing: 1px;
+}
+.rodape {
+  text-align: center;
+  font-style: italic;
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
