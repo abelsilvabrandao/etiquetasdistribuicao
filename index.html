@@ -756,6 +756,9 @@ async function renderEtiquetas(files) {
     });
   };
 
+  // --- COLETAR DADOS DAS NFS PARA ORDENAR OS CARDS ---
+  let nfCardsTemp = [];
+  let filesAndXmls = [];
   for (const file of files) {
     const volumes = await getFileVolumes(file);
     totalEtiquetas += volumes;
@@ -764,158 +767,179 @@ async function renderEtiquetas(files) {
   document.getElementById('totalPages').textContent = totalEtiquetas;
   container.innerHTML = '';
 
-  Array.from(files).forEach((file, fileIndex) => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(e.target.result, 'text/xml');
+  // Carregar XMLs e dados das NFs em paralelo
+  await Promise.all(Array.from(files).map(async (file, fileIndex) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(e.target.result, 'text/xml');
 
-      const get = tag => {
-        const el = xml.getElementsByTagName(tag)[0];
-        return el ? el.textContent : '';
+        const get = tag => {
+          const el = xml.getElementsByTagName(tag)[0];
+          return el ? el.textContent : '';
+        };
+
+        const emitente = get('xNome');
+        const nf = get('nNF');
+        const cnpjEmitente = get('CNPJ');
+        const logoUrl = `${cnpjEmitente}.png`;
+
+        const dest = xml.getElementsByTagName('dest')[0];
+        const endDest = dest?.getElementsByTagName('enderDest')[0];
+        const destNome = formatDestinatario(dest?.getElementsByTagName('xNome')[0]?.textContent || '');
+        const endereco = formatEndereco(`${endDest?.getElementsByTagName('xLgr')[0]?.textContent || ''}, ${endDest?.getElementsByTagName('nro')[0]?.textContent || ''}`);
+        const bairro = formatBairro(endDest?.getElementsByTagName('xBairro')[0]?.textContent || '');
+        const cidadeUF = formatCidade(`${endDest?.getElementsByTagName('xMun')[0]?.textContent || ''} - ${endDest?.getElementsByTagName('UF')[0]?.textContent || ''}`);
+
+        const itens = Array.from(xml.getElementsByTagName('det'));
+        const volTag = xml.getElementsByTagName('vol')[0];
+        let volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
+
+        // Extrair produtos e quantidades
+        let produtosHtml = '';
+        let quantTotal = 0;
+        itens.forEach((itemEl) => {
+          const cProd = formatProduto(itemEl.getElementsByTagName('cProd')[0]?.textContent || '');
+          const xProd = formatProduto(itemEl.getElementsByTagName('xProd')[0]?.textContent || '');
+          let qCom = itemEl.getElementsByTagName('qCom')[0]?.textContent || '';
+          // Formatar quantidade como inteiro
+          let qComInt = '';
+          if (qCom !== '') {
+            let qNum = parseFloat(qCom.replace(',', '.'));
+            qComInt = isNaN(qNum) ? qCom : parseInt(qNum).toString();
+          }
+          produtosHtml += `<div class=\"nf-linha\"><span class=\"nf-label\">CÓDIGO:</span> <span class=\"nf-dado\">${cProd}</span></div>`;
+          produtosHtml += `<div class=\"nf-linha\"><span class=\"nf-label\">DESCRIÇÃO:</span> <span class=\"nf-dado\">${xProd}</span></div>`;
+          produtosHtml += `<div class=\"nf-linha\"><span class=\"nf-label\">QUANT.:</span> <span class=\"nf-dado\">${qComInt}</span></div>`;
+          quantTotal += parseFloat(qCom.replace(',', '.')) || 0;
+        });
+        const badgeText = volumesTotais == 1 ? '1 Etiqueta' : `${volumesTotais} Etiquetas`;
+        const cardHtml = `
+          <span class=\"etiquetas-count pulse-badge\">${badgeText}</span>
+          <div class=\"nf-linha\">
+            <span class=\"nf-label\">NF:</span> 
+            <span class=\"nf-dado\">${nf}</span>
+          </div>
+          <div class=\"nf-linha\"><span class=\"nf-label\">DEST.:</span> <span class=\"nf-dado\">${destNome}</span></div>
+          <div class=\"nf-linha\"><span class=\"nf-label\">CIDADE:</span> <span class=\"nf-dado\">${cidadeUF}</span></div>
+          ${produtosHtml}
+        `;
+        nfCardsTemp.push({
+          nf: parseInt(nf),
+          html: cardHtml
+        });
+        filesAndXmls.push({ file, fileIndex, xml, emitente, nf, cnpjEmitente, logoUrl, destNome, endereco, bairro, cidadeUF, itens, volumesTotais });
+        resolve();
       };
+      reader.readAsText(file);
+    });
+  }));
 
-      const emitente = get('xNome');
-      const nf = get('nNF');
-      const cnpjEmitente = get('CNPJ');
-      const logoUrl = `${cnpjEmitente}.png`;
+  // ORDENAR PELO NÚMERO DA NF
+  nfCardsTemp.sort((a, b) => a.nf - b.nf);
 
-      const dest = xml.getElementsByTagName('dest')[0];
-      const endDest = dest?.getElementsByTagName('enderDest')[0];
-      const destNome = formatDestinatario(dest?.getElementsByTagName('xNome')[0]?.textContent || '');
-      const endereco = formatEndereco(`${endDest?.getElementsByTagName('xLgr')[0]?.textContent || ''}, ${endDest?.getElementsByTagName('nro')[0]?.textContent || ''}`);
-      const bairro = formatBairro(endDest?.getElementsByTagName('xBairro')[0]?.textContent || '');
-      const cidadeUF = formatCidade(`${endDest?.getElementsByTagName('xMun')[0]?.textContent || ''} - ${endDest?.getElementsByTagName('UF')[0]?.textContent || ''}`);
+  // RENDERIZAR OS CARDS NO PAINEL LATERAL NA ORDEM CORRETA
+  document.getElementById('nfList').innerHTML = '';
+  document.getElementById('totalNFsPanel').textContent = '0';
+  nfCardsTemp.forEach(cardData => {
+    const nfCard = document.createElement('div');
+    nfCard.className = 'nf-card';
+    nfCard.innerHTML = cardData.html;
+    document.getElementById('nfList').appendChild(nfCard);
+    document.getElementById('totalNFsPanel').textContent =
+      parseInt(document.getElementById('totalNFsPanel').textContent) + 1;
+  });
 
-      const itens = Array.from(xml.getElementsByTagName('det'));
-      const volTag = xml.getElementsByTagName('vol')[0];
-      let volumesTotais = parseInt(volTag?.getElementsByTagName('qVol')[0]?.textContent || '1');
-
-      // NOVO: adicionar cartão ao painel lateral
-      const nfCard = document.createElement('div');
-      nfCard.className = 'nf-card';
-      // Extrair produtos e quantidades
-      let produtosHtml = '';
-      let quantTotal = 0;
-      itens.forEach((itemEl) => {
-        const cProd = formatProduto(itemEl.getElementsByTagName('cProd')[0]?.textContent || '');
-        const xProd = formatProduto(itemEl.getElementsByTagName('xProd')[0]?.textContent || '');
-        let qCom = itemEl.getElementsByTagName('qCom')[0]?.textContent || '';
-        // Formatar quantidade como inteiro
-        let qComInt = '';
-        if (qCom !== '') {
-          let qNum = parseFloat(qCom.replace(',', '.'));
-          qComInt = isNaN(qNum) ? qCom : parseInt(qNum).toString();
-        }
-        produtosHtml += `<div class="nf-linha"><span class="nf-label">CÓDIGO:</span> <span class="nf-dado">${cProd}</span></div>`;
-        produtosHtml += `<div class="nf-linha"><span class="nf-label">DESCRIÇÃO:</span> <span class="nf-dado">${xProd}</span></div>`;
-        produtosHtml += `<div class="nf-linha"><span class="nf-label">QUANT.:</span> <span class="nf-dado">${qComInt}</span></div>`;
-        quantTotal += parseFloat(qCom.replace(',', '.')) || 0;
-      });
-      const badgeText = volumesTotais == 1 ? '1 Etiqueta' : `${volumesTotais} Etiquetas`;
-      nfCard.innerHTML = `
-        <span class="etiquetas-count pulse-badge">${badgeText}</span>
-        <div class="nf-linha">
-          <span class="nf-label">NF:</span> 
-          <span class="nf-dado">${nf}</span>
-        </div>
-        <div class="nf-linha"><span class="nf-label">DEST.:</span> <span class="nf-dado">${destNome}</span></div>
-        <div class="nf-linha"><span class="nf-label">CIDADE:</span> <span class="nf-dado">${cidadeUF}</span></div>
-        ${produtosHtml}
-      `;
-      document.getElementById('nfList').appendChild(nfCard);
-      document.getElementById('totalNFsPanel').textContent =
-        parseInt(document.getElementById('totalNFsPanel').textContent) + 1;
-
-      // Distribuição de volumes
-      let volumesDistribuidos = [];
-      let totalDistribuido = 0;
-      itens.forEach((itemEl) => {
-        let qtdVol = 1;
-        const infAdProd = itemEl.getElementsByTagName('infAdProd')[0];
-        if (infAdProd && infAdProd.textContent.toLowerCase().includes('volume:')) {
-          const match = infAdProd.textContent.match(/volume:\s*(\d+)/i);
-          if (match) qtdVol = parseInt(match[1]);
-        }
-        totalDistribuido += qtdVol;
-        volumesDistribuidos.push(qtdVol);
-      });
-
-      if (totalDistribuido !== volumesTotais) {
-        volumesDistribuidos = itens.map((_, idx) =>
-          Math.round((volumesTotais / itens.length) * (idx + 1)) - Math.round((volumesTotais / itens.length) * idx)
-        );
+  // --- RESTANTE DA LÓGICA DE IMPRESSÃO DAS ETIQUETAS (sem alteração) ---
+  for (const obj of filesAndXmls) {
+    const { fileIndex, xml, emitente, nf, cnpjEmitente, logoUrl, destNome, endereco, bairro, cidadeUF, itens, volumesTotais } = obj;
+    let volumesDistribuidos = [];
+    let totalDistribuido = 0;
+    itens.forEach((itemEl) => {
+      let qtdVol = 1;
+      const infAdProd = itemEl.getElementsByTagName('infAdProd')[0];
+      if (infAdProd && infAdProd.textContent.toLowerCase().includes('volume:')) {
+        const match = infAdProd.textContent.match(/volume:\s*(\d+)/i);
+        if (match) qtdVol = parseInt(match[1]);
       }
+      totalDistribuido += qtdVol;
+      volumesDistribuidos.push(qtdVol);
+    });
 
-      const totalVolumes = volumesDistribuidos.reduce((sum, vol) => sum + vol, 0);
-      let volumeAtual = 0;
+    if (totalDistribuido !== volumesTotais) {
+      volumesDistribuidos = itens.map((_, idx) =>
+        Math.round((volumesTotais / itens.length) * (idx + 1)) - Math.round((volumesTotais / itens.length) * idx)
+      );
+    }
 
-      itens.forEach((itemEl, itemIndex) => {
-        const cProd = formatProduto(itemEl.getElementsByTagName('cProd')[0]?.textContent || '');
-        const xProd = formatProduto(itemEl.getElementsByTagName('xProd')[0]?.textContent || '');
-        const xPed = itemEl.getElementsByTagName('xPed')[0]?.textContent || '---';
-        const volItem = volumesDistribuidos[itemIndex] || 1;
+    const totalVolumes = volumesDistribuidos.reduce((sum, vol) => sum + vol, 0);
+    let volumeAtual = 0;
 
-        for (let i = 1; i <= volItem; i++) {
-          const barcodeId = `barcode-${fileIndex}-${itemIndex}-${i}`;
-          const etiqueta = document.createElement('div');
-          etiqueta.className = 'etiqueta';
-          etiqueta.innerHTML = `
-            <div class="topo">
-              <div class="emitente-logo">
-                <div class="logo-container">
-                  <img src="${logoUrl}" alt="Logo ${emitente}" class="logo">
-                </div>
-                <div class="right-content">
-                  <h2>${emitente}</h2>
-                  <div class="barcode-and-volume">
-  <div class="barcode">
-    <svg id="${barcodeId}"></svg>
-  </div>
-  <div class="volume-text">${cProd} - ${i} de ${volItem}</div>
+    itens.forEach((itemEl, itemIndex) => {
+      const cProd = formatProduto(itemEl.getElementsByTagName('cProd')[0]?.textContent || '');
+      const xProd = formatProduto(itemEl.getElementsByTagName('xProd')[0]?.textContent || '');
+      const xPed = itemEl.getElementsByTagName('xPed')[0]?.textContent || '---';
+      const volItem = volumesDistribuidos[itemIndex] || 1;
+
+      for (let i = 1; i <= volItem; i++) {
+        const barcodeId = `barcode-${fileIndex}-${itemIndex}-${i}`;
+        const etiqueta = document.createElement('div');
+        etiqueta.className = 'etiqueta';
+        etiqueta.innerHTML = `
+          <div class=\"topo\">
+            <div class=\"emitente-logo\">
+              <div class=\"logo-container\">
+                <img src=\"${logoUrl}\" alt=\"Logo ${emitente}\" class=\"logo\">
+              </div>
+              <div class=\"right-content\">
+                <h2>${emitente}</h2>
+                <div class=\"barcode-and-volume\">
+<div class=\"barcode\">
+  <svg id=\"${barcodeId}\"></svg>
 </div>
-                </div>
+<div class=\"volume-text\">${cProd} - ${i} de ${volItem}</div>
+</div>
               </div>
             </div>
+          </div>
 
-            <div class="dados-grid">
-              <div><strong>DESTINAT.</strong></div><div>${destNome}</div>
-              <div><strong>ENDEREÇO</strong></div><div>${endereco}</div>
-              <div><strong>BAIRRO</strong></div><div>${bairro}</div>
-              <div><strong>CIDADE</strong></div><div class="cidade-info">${cidadeUF}</div>
-              <div><strong>PRODUTO</strong></div><div class="produto-valor">${cProd} - ${xProd}</div>
-            </div>
-            <div class="nf-vol">
-              <div><span class="label">NF </span><span class="value">${nf}</span></div>
-              <div><span class="label">VOL </span><span class="value">${++volumeAtual} / ${totalVolumes}</span></div>
-            </div>
-            <div class="rodape">
-              <b>OPERADOR LOGÍSTICO - INTERMARÍTIMA PORTOS E LOGÍSTICA S.A.</b>
-            </div>
-          `;
-          container.appendChild(etiqueta);
-          etiquetaAtual++;
+          <div class=\"dados-grid\">
+            <div><strong>DESTINAT.</strong></div><div>${destNome}</div>
+            <div><strong>ENDEREÇO</strong></div><div>${endereco}</div>
+            <div><strong>BAIRRO</strong></div><div>${bairro}</div>
+            <div><strong>CIDADE</strong></div><div class=\"cidade-info\">${cidadeUF}</div>
+            <div><strong>PRODUTO</strong></div><div class=\"produto-valor\">${cProd} - ${xProd}</div>
+          </div>
+          <div class=\"nf-vol\">
+            <div><span class=\"label\">NF </span><span class=\"value\">${nf}</span></div>
+            <div><span class=\"label\">VOL </span><span class=\"value\">${++volumeAtual} / ${totalVolumes}</span></div>
+          </div>
+          <div class=\"rodape\">
+            <b>OPERADOR LOGÍSTICO - INTERMARÍTIMA PORTOS E LOGÍSTICA S.A.</b>
+          </div>
+        `;
+        container.appendChild(etiqueta);
+        etiquetaAtual++;
 
-          observer.observe(etiqueta);
+        observer.observe(etiqueta);
 
-          JsBarcode(`#${barcodeId}`, `${cProd}-${xPed}`, {
-            format: "CODE128",
-            width: 2,
-            height: 40,
-            displayValue: false,
-            width: 2,
-            margin: 0,
-            // O SVG será limitado pelo CSS para max-width: 200px
-          });
-        }
-      });
+        JsBarcode(`#${barcodeId}`, `${cProd}-${xPed}`, {
+          format: "CODE128",
+          width: 2,
+          height: 40,
+          displayValue: false,
+          width: 2,
+          margin: 0,
+          // O SVG será limitado pelo CSS para max-width: 200px
+        });
+      }
+    });
 
-      // NOVO: atualizar painel ao final da leitura de cada NF
-      document.getElementById('totalEtiquetasPanel').textContent = 
-        parseInt(document.getElementById('totalEtiquetasPanel').textContent) + totalVolumes;
-    };
-    reader.readAsText(file);
-  });
+    // NOVO: atualizar painel ao final da leitura de cada NF
+    document.getElementById('totalEtiquetasPanel').textContent = 
+      parseInt(document.getElementById('totalEtiquetasPanel').textContent) + totalVolumes;
+  }
 }
 
   </script>
